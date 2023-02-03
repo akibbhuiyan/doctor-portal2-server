@@ -24,7 +24,8 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
-client.connect((err) => {
+async function run() {
+  try { 
   const AppointmentCollection = client
     .db("doctorPortal")
     .collection("appointment");
@@ -100,6 +101,10 @@ client.connect((err) => {
       res.send(doctors.length > 0);
     });
   });
-});
+}
+finally {
+ }
+}
+run().catch(console.log);
 
 app.listen(process.env.PORT || port);
