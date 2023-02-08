@@ -38,7 +38,7 @@ async function run() {
       });
     });
     app.post("/appoinmentsByDate", (req, res) => {
-      const date = req.body;
+      const date = req.body.date;
       console.log(date);
       const email = req.body.email;
       const filters = { date: date.date };
@@ -58,36 +58,14 @@ async function run() {
       });
     });
     app.post("/addDoctor", (req, res) => {
-      const file = req.files.file;
+      const file = req.body.image;
       const name = req.body.name;
       const email = req.body.email;
       const number = req.body.number;
-      const filePath = `${__dirname}/doctors/${file.name}`;
-
-      file.mv(filePath, (err) => {
-        if (err) {
-          console.log(err);
-          res.status(500).send({ msg: "File Upload Failed" });
-        }
-        return res.send({ name: file.name, path: `/${file.path}` });
-      });
-      const newImg = fs.readFileSync(filePath);
-      const encImg = newImg.toString("base64");
-      const image = {
-        contentType: req.files.file.mimetype,
-        size: req.files.file.size,
-        img: Buffer.from(encImg, "base64"),
-      };
       doctorsCollection
-        .insertOne({ name: name, email: email, number: number, image })
+        .insertOne({ name: name, email: email, number: number, image: file })
         .then((result) => {
-          fs.remove(filePath, (error) => {
-            if (error) {
-              console.log(error);
-              res.status(500).send({ msg: "File Upload Failed" });
-            }
-            res.send(result.acknowledged);
-          });
+          res.send(result.acknowledged);
         });
     });
     app.get("/doctor", (req, res) => {
