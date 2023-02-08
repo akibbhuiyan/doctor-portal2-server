@@ -1,8 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const fileUpload = require("express-fileupload");
-const fs = require("fs-extra");
+const nodemailer = require("nodemailer");
+const mg = require("nodemailer-mailgun-transport");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
@@ -11,7 +11,6 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static("doctors"));
-app.use(fileUpload());
 const port = 5000;
 app.get("/", (req, res) => {
   res.send("Doctor Portal server");
@@ -23,7 +22,52 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
+const sendBookingEmail = (booking) => {
+  const { email, date, service } = booking;
 
+  const auth = {
+    auth: {
+      api_key: process.env.api,
+      domain: process.env.domain,
+    },
+  };
+
+  const transporter = nodemailer.createTransport(mg(auth));
+
+  // let transporter = nodemailer.createTransport({
+  //     host: 'smtp.sendgrid.net',
+  //     port: 587,
+  //     auth: {
+  //         user: "apikey",
+  //         pass: process.env.SENDGRID_API_KEY
+  //     }
+  // });
+  console.log("sending email", email);
+  transporter.sendMail(
+    {
+      from: "alexboss00852@gmail.com", // verified sender email
+      to: email || "akibbhh@gmail.com", // recipient email
+      subject: `Your appointment for ${service} is confirmed`, // Subject line
+      text: "Hello world!", // plain text body
+      html: `
+      <h3>Your appointment is confirmed</h3>
+      <div>
+          <p>Your appointment for treatment: ${service}</p>
+          <p>Please visit us on ${date} at </p>
+          <p>Thanks from Doctors Portal.</p>
+      </div>
+
+      `, // html body
+    },
+    (error, info) => {
+      if (error) {
+        console.log("Email send error", error);
+      } else {
+        console.log("Email sent: " + info);
+      }
+    }
+  );
+};
 async function run() {
   try {
     const AppointmentCollection = client
@@ -31,11 +75,25 @@ async function run() {
       .collection("appointment");
     const doctorsCollection = client.db("doctorPortal").collection("doctors");
 
-    app.post("/addAppoinment", (req, res) => {
-      const appointment = req.body;
-      AppointmentCollection.insertOne(appointment).then((result) => {
-        res.send(result.acknowledged);
-      });
+    app.post("/addAppoinment", async (req, res) => {
+      const booking = req.body;
+
+      const query = {
+        date: booking.date,
+        email: booking.email,
+      };
+
+      const alreadyBooked = await AppointmentCollection.find(query).toArray();
+
+      if (alreadyBooked.length) {
+        const message = `You already have a booking on ${booking.date}`;
+        return res.send({ acknowledged: false, message });
+      } else {
+        const result = await AppointmentCollection.insertOne(booking);
+        // send email about appointment confirmation
+        sendBookingEmail(booking);
+        res.send(result);
+      }
     });
     app.post("/appoinmentsByDate", (req, res) => {
       const date = req.body.date;

@@ -18,7 +18,9 @@
     "express-fileupload": "^1.4.0",
     "fs-extra": "^10.1.0",
     "heroku": "^7.67.1",
-    "mongodb": "^4.9.1"
+    "mongodb": "^4.9.1",
+    "nodemailer": "^6.9.1",
+    "nodemailer-mailgun-transport": "^2.1.5"
   },
   "devDependencies": {
     "nodemon": "^2.0.19"
