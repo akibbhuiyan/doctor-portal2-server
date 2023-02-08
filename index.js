@@ -57,16 +57,12 @@ async function run() {
         res.send(document);
       });
     });
-    app.post("/addDoctor", (req, res) => {
-      const file = req.body.image;
-      const name = req.body.name;
-      const email = req.body.email;
-      const number = req.body.number;
-      doctorsCollection
-        .insertOne({ name: name, email: email, number: number, image: file })
-        .then((result) => {
-          res.send(result.acknowledged);
-        });
+    app.post("/addDoctor", async (req, res) => {
+      const doctor = req.body;
+
+      doctorsCollection.insertOne();
+      const result = await doctorsCollection.insertOne(doctor);
+      res.send(result);
     });
     app.get("/doctor", (req, res) => {
       doctorsCollection.find({}).toArray((err, document) => {
