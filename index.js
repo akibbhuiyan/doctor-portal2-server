@@ -3,7 +3,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const fileUpload = require("express-fileupload");
 const fs = require("fs-extra");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 const app = express();
@@ -39,14 +39,14 @@ async function run() {
     });
     app.post("/appoinmentsByDate", (req, res) => {
       const date = req.body.date;
-      console.log(date);
       const email = req.body.email;
-      const filters = { date: date.date };
+      const filters = { date: date };
 
       doctorsCollection.find({ email: email }).toArray((err, doctors) => {
         if (doctors.length === 0) {
           filters.email = email;
         }
+        console.log(filters);
         AppointmentCollection.find(filters).toArray((err, document) => {
           res.send(document);
         });
@@ -77,6 +77,13 @@ async function run() {
       const email = req.body.email;
       doctorsCollection.find({ email: email }).toArray((err, doctors) => {
         res.send(doctors.length > 0);
+      });
+    });
+    app.get("/deleteUser", (req, res) => {
+      const id = req.query.id;
+      const filter = { _id: ObjectId(id) };
+      AppointmentCollection.deleteOne(filter).then((result) => {
+        res.send(result.acknowledged);
       });
     });
   } finally {
