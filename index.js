@@ -42,7 +42,7 @@ const sendBookingEmail = (booking) => {
   //         pass: process.env.SENDGRID_API_KEY
   //     }
   // });
-  console.log("sending email", email);
+
   transporter.sendMail(
     {
       from: "alexboss00852@gmail.com", // verified sender email
@@ -143,6 +143,52 @@ async function run() {
       AppointmentCollection.deleteOne(filter).then((result) => {
         res.send(result.acknowledged);
       });
+    });
+    app.post("/contact", (req, res) => {
+      const { email, subject, message } = req.body;
+      const auth = {
+        auth: {
+          api_key: process.env.api,
+          domain: process.env.domain,
+        },
+      };
+
+      const transporter = nodemailer.createTransport(mg(auth));
+
+      // let transporter = nodemailer.createTransport({
+      //     host: 'smtp.sendgrid.net',
+      //     port: 587,
+      //     auth: {
+      //         user: "apikey",
+      //         pass: process.env.SENDGRID_API_KEY
+      //     }
+      // });
+
+      transporter.sendMail(
+        {
+          from: email, // verified sender email
+          to: "akibbhh@gmail.com",
+          subject: `You have a message from Doctors Portal about ${subject} `, // Subject line
+          text: "Hello world!", // plain text body
+          html: `
+          
+          <div>
+              <p>Message is ${message}</p>
+              <p>from Doctors Portal.</p>
+          </div>
+    
+          `, // html body
+        },
+        (error, info) => {
+          if (error) {
+            console.log("Email send error", error);
+            res.send(error);
+          } else {
+            console.log("Email sent: " + info);
+            res.send(info);
+          }
+        }
+      );
     });
   } finally {
   }
