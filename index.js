@@ -77,7 +77,7 @@ async function run() {
 
     app.post("/addAppoinment", async (req, res) => {
       const booking = req.body;
-
+      console.log(booking);
       const query = {
         date: booking.date,
         email: booking.email,
@@ -88,12 +88,12 @@ async function run() {
       if (alreadyBooked.length) {
         const message = `You already have a booking on ${booking.date}`;
         return res.send({ acknowledged: false, message });
-      } else {
-        const result = await AppointmentCollection.insertOne(booking);
-        // send email about appointment confirmation
-        sendBookingEmail(booking);
-        res.send(result);
       }
+
+      const result = await AppointmentCollection.insertOne(booking);
+      // send email about appointment confirmation
+      sendBookingEmail(booking);
+      res.send(result);
     });
     app.post("/appoinmentsByDate", (req, res) => {
       const date = req.body.date;
