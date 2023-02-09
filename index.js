@@ -81,6 +81,7 @@ async function run() {
       const query = {
         date: booking.date,
         email: booking.email,
+        service: booking.service,
       };
 
       const alreadyBooked = await AppointmentCollection.find(query).toArray();
